@@ -1,0 +1,286 @@
+{
+  "info": {
+    "_postman_id": "20cb9f73-ddb9-418f-bc7b-e19485d2a04c",
+    "name": "Reqres_Automation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "21019615"
+  },
+  "item": [
+    {
+      "name": "1. Login with registered credentials — capture authToken",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Response Code Validation\r",
+              "pm.test(\"Status code is 200 OK\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "//Capture and store the auth token\r",
+              "var jsonData = pm.response.json();\r",
+              "pm.test(\"Token is generated\", function () {\r",
+              "    pm.expect(jsonData).to.have.property('token');\r",
+              "});\r",
+              "\r",
+              "// Store token in the environment\r",
+              "pm.environment.set(\"authToken\", jsonData.token);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{api_key}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"eve.holt@reqres.in\",\r\n    \"password\": \"cityslicka\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. GET user by userId — verify name & email match",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "    //Response Code Validation\r",
+              "    pm.test(\"Status code is 200 OK\", function () {\r",
+              "        pm.response.to.have.status(200);\r",
+              "    });\r",
+              "\r",
+              "    // Verify name and email match\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.test(\"Verify correct user details (Name & Email)\", function () {\r",
+              "        pm.expect(jsonData.data.first_name).to.eql(\"Janet\");\r",
+              "        pm.expect(jsonData.data.last_name).to.eql(\"Weaver\");\r",
+              "        pm.expect(jsonData.data.email).to.eql(\"janet.weaver@reqres.in\");\r",
+              "    });"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{api_key}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/2",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. PUT Updated profile — verify updatedAt timestamp",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Response Code Validation\r",
+              "    pm.test(\"Status code is 200 OK\", function () {\r",
+              "        pm.response.to.have.status(200);\r",
+              "    });\r",
+              "\r",
+              "    // Verify updatedAt timestamp exists and data updated\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.test(\"Profile updated successfully with timestamp\", function () {\r",
+              "        pm.expect(jsonData.name).to.eql(\"Morpheus\");\r",
+              "        pm.expect(jsonData.job).to.eql(\"Zion Leader\");\r",
+              "        // Verify the timestamp field exists\r",
+              "        pm.expect(jsonData).to.have.property('updatedAt');\r",
+              "    });"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{api_key}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "    {\r\n        \"name\": \"Morpheus\",\r\n        \"job\": \"Zion Leader\"\r\n    }",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/2",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. PATCH single field — verify only that field changed",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Response Code Validation\r",
+              "    pm.test(\"Status code is 200 OK\", function () {\r",
+              "        pm.response.to.have.status(200);\r",
+              "    });\r",
+              "\r",
+              "// Verify only the patched field is updated\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.test(\"Only 'name' field is modified\", function () {\r",
+              "        pm.expect(jsonData.name).to.eql(\"Neo\");\r",
+              "        pm.expect(jsonData).to.have.property('updatedAt');\r",
+              "        \r",
+              "        // Assert that un-sent fields (like 'job') are not erroneously added to the response\r",
+              "        pm.expect(jsonData).to.not.have.property('job'); \r",
+              "    });"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{api_key}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": " {\r\n        \"name\": \"Neo\"\r\n    }",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/2",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Execute bad requests using stored data — assert 4xx errors",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "//  Response Code Validation (Asserting a 400 error)\r",
+              "    pm.test(\"Status code is 400 Bad Request\", function () {\r",
+              "        pm.response.to.have.status(400);\r",
+              "    });\r",
+              "\r",
+              "    //  Verify specific error message\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.test(\"Verify 'Missing password' error message\", function () {\r",
+              "        pm.expect(jsonData.error).to.eql(\"Missing password\");\r",
+              "    });"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{api_key}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n        \"email\": \"peter@klaven\"\r\n    }",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
